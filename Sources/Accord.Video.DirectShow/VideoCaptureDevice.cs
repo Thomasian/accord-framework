@@ -1194,6 +1194,7 @@ namespace Accord.Video.DirectShow
                 {
                     // render capture pin
                     captureGraph.RenderStream(PinCategory.Capture, MediaType.Video, sourceBase, null, videoGrabberBase);
+                    captureGraph.RenderStream(PinCategory.Capture, MediaType.Audio, sourceBase, null, null);
 
                     if (videoSampleGrabber.GetConnectedMediaType(mediaType) == 0)
                     {

@@ -3,11 +3,18 @@
 // Issues encountered using a later version
 // 1. Thread does not exit successfully (never ends) when closed (VideoSource_VideoSourceError fires continously)
 // 2. SignalToStop causes an Access Violation exception. PreventFreezing = true fixes this issue but messes up the playback speed
+//
+// Changes:
+// Accord.Video.DirectShow:
+//  VideoCaptureDevice.cs:
+//      WorkerThread: Added captureGraph.RenderStream(PinCategory.Capture, MediaType.Audio, sourceBase, null, null); to render audio from TV tuner
+//
 
 using Accord.Video;
 using Accord.Video.DirectShow;
 using System;
 using System.Collections.Generic;
+using System.Linq;
 using System.Windows;
 using System.Windows.Media;
 using System.Windows.Media.Imaging;
@@ -37,7 +44,7 @@ namespace WPFCoreTestApp
 
             var videoDevices = new FilterInfoCollection(FilterCategory.VideoInputDevice);
 
-            /*
+            //*
             var videoCaptureDevice = new VideoCaptureDevice(videoDevices[0].MonikerString);
             videoSource = videoCaptureDevice;
 
@@ -45,9 +52,9 @@ namespace WPFCoreTestApp
             VideoCapabilities caps = videoCapabilitiesDictionary[videoResolutions.Last()];
             videoCaptureDevice.VideoResolution = caps;
             var captureSize = caps.FrameSize;
-            */
+            //*/
 
-            /////*
+            /*
             //var fileVideoDevice = new FileVideoSource(@"D:\Videos\Genius S01 Einstein (2017 NG 360p re-webrip)\Genius S01E01 Einstein Chapter One.mp4");
             //videoSource = new ScreenCaptureStream(Screen.AllScreens[0].Bounds, 100);
             //videoSource = new FileVideoSource(@"E:\Movies\Argo (2012)\Argo.2012.720p.BluRay.x264.YIFY.mp4");
@@ -55,7 +62,7 @@ namespace WPFCoreTestApp
             var fileVideoDevice = new FileVideoSource(@"D:\Videos\2011.03.04.Michael.Jordan.to.the.Max.2000.BluRay.720p.x264.DTS-MySiLU\Michael.Jordan.to.the.Max.2000.BluRay.720p.x264.DTS-MySiLU.mkv");
             //fileVideoDevice.PreventFreezing = true;
             videoSource = fileVideoDevice;
-            //*/
+            */
 
             videoSource.NewFrame += new NewFrameEventHandler(video_NewFrame);
             videoSource.VideoSourceError += VideoSource_VideoSourceError;
