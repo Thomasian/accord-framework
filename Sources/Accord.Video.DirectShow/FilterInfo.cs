@@ -211,6 +211,27 @@ namespace Accord.Video.DirectShow
             return name;
         }
 
+        public IMoniker GetMoniker()
+        {
+            IBindCtx bindCtx = null;
+            IMoniker moniker = null;
+            int n = 0;
+
+            // create bind context
+            if (Win32.CreateBindCtx(0, out bindCtx) == 0)
+            {
+                // convert moniker`s string to a moniker
+                if (Win32.MkParseDisplayName(bindCtx, MonikerString, ref n, out moniker) == 0)
+                {
+                    //Marshal.ReleaseComObject(moniker);
+                    //moniker = null;
+                }
+                Marshal.ReleaseComObject(bindCtx);
+                bindCtx = null;
+            }
+            return moniker;
+        }
+
         /// <summary>
         /// Returns a <see cref="System.String" /> that represents this instance.
         /// </summary>

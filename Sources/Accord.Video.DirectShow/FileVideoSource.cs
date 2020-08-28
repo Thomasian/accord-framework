@@ -37,6 +37,7 @@ namespace Accord.Video.DirectShow
 
     using Accord.Video;
     using Accord.Video.DirectShow.Internals;
+    using System.ComponentModel;
 
     /// <summary>
     /// Video source for video files.
@@ -474,6 +475,24 @@ namespace Accord.Video.DirectShow
                     IMediaFilter mediaFilter = (IMediaFilter)graphObject;
                     mediaFilter.SetSyncSource(null);
                 }
+
+                #region Add Audio (not working)
+
+                //var audioDevices = new FilterInfoCollection(FilterCategory.AudioRenderCategory);
+                //FilterInfo audioDevice = null;
+                //foreach (var dev in audioDevices)
+                //{
+                //    audioDevice = dev;
+                //    break;
+                //}
+
+                //var filterGraph = graph as IFilterGraph2;
+                //IBaseFilter filter;
+                //var moniker = audioDevice.GetMoniker();
+                //int hr = filterGraph.AddSourceFilterForMoniker(moniker, null, audioDevice.Name, out filter);
+                //Marshal.ThrowExceptionForHR(hr);
+
+                #endregion
 
                 // get media control
                 mediaControl = (IMediaControl)graphObject;

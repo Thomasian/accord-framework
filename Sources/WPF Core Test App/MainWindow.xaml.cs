@@ -44,7 +44,7 @@ namespace WPFCoreTestApp
 
             var videoDevices = new FilterInfoCollection(FilterCategory.VideoInputDevice);
 
-            //*
+            /*
             var videoCaptureDevice = new VideoCaptureDevice(videoDevices[0].MonikerString);
             videoSource = videoCaptureDevice;
 
@@ -52,17 +52,17 @@ namespace WPFCoreTestApp
             VideoCapabilities caps = videoCapabilitiesDictionary[videoResolutions.Last()];
             videoCaptureDevice.VideoResolution = caps;
             var captureSize = caps.FrameSize;
-            //*/
+            */
 
-            /*
+            //*
             //var fileVideoDevice = new FileVideoSource(@"D:\Videos\Genius S01 Einstein (2017 NG 360p re-webrip)\Genius S01E01 Einstein Chapter One.mp4");
             //videoSource = new ScreenCaptureStream(Screen.AllScreens[0].Bounds, 100);
             //videoSource = new FileVideoSource(@"E:\Movies\Argo (2012)\Argo.2012.720p.BluRay.x264.YIFY.mp4");
             //videoSource = new FileVideoSource(@"D:\Videos\Genius S01 Einstein (2017 NG 360p re-webrip)\Genius S01E01 Einstein Chapter One.mp4");
-            var fileVideoDevice = new FileVideoSource(@"D:\Videos\2011.03.04.Michael.Jordan.to.the.Max.2000.BluRay.720p.x264.DTS-MySiLU\Michael.Jordan.to.the.Max.2000.BluRay.720p.x264.DTS-MySiLU.mkv");
+            var fileVideoDevice = new FileVideoSource(@"C:\ProgramData\Electrobrain Enterprises\Automizer\Queue Management System\Multimedia Display\Data Files\SampleVideo1.mp4");
             //fileVideoDevice.PreventFreezing = true;
             videoSource = fileVideoDevice;
-            */
+            //*/
 
             videoSource.NewFrame += new NewFrameEventHandler(video_NewFrame);
             videoSource.VideoSourceError += VideoSource_VideoSourceError;
