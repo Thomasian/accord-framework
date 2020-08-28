@@ -1,7 +1,7 @@
 ﻿
 Microsoft Visual Studio Solution File, Format Version 12.00
-# Visual Studio 15
-VisualStudioVersion = 15.0.26823.1
+# Visual Studio Version 16
+VisualStudioVersion = 16.0.30413.136
 MinimumVisualStudioVersion = 10.0.40219.1
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Accord.Core (NETStandard)", "Accord.Core\Accord.Core (NETStandard).csproj", "{18CFE577-5FC5-4566-9047-1BB4139BD8B0}"
 EndProject
@@ -120,6 +120,8 @@ EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Accord.Neuro (NETStandard)", "Accord.Neuro\Accord.Neuro (NETStandard).csproj", "{AD6BB44B-B0F6-4062-8E34-79FC149CDDC3}"
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Accord.Tests.Video.FFMPEG (NETStandard)", "Extras\Accord.Tests.Video.FFMPEG\Accord.Tests.Video.FFMPEG (NETStandard).csproj", "{A091F168-1425-4228-B929-83745018B032}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "WPF Core Test App", "WPF Core Test App\WPF Core Test App.csproj", "{4C44E9EC-1488-4946-9047-99235B95A605}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
@@ -955,6 +957,24 @@ Global
 		{A091F168-1425-4228-B929-83745018B032}.Release|x64.Build.0 = Release|Any CPU
 		{A091F168-1425-4228-B929-83745018B032}.Release|x86.ActiveCfg = Release|Any CPU
 		{A091F168-1425-4228-B929-83745018B032}.Release|x86.Build.0 = Release|Any CPU
+		{4C44E9EC-1488-4946-9047-99235B95A605}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{4C44E9EC-1488-4946-9047-99235B95A605}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{4C44E9EC-1488-4946-9047-99235B95A605}.Debug|x64.ActiveCfg = Debug|Any CPU
+		{4C44E9EC-1488-4946-9047-99235B95A605}.Debug|x64.Build.0 = Debug|Any CPU
+		{4C44E9EC-1488-4946-9047-99235B95A605}.Debug|x86.ActiveCfg = Debug|Any CPU
+		{4C44E9EC-1488-4946-9047-99235B95A605}.Debug|x86.Build.0 = Debug|Any CPU
+		{4C44E9EC-1488-4946-9047-99235B95A605}.Docs|Any CPU.ActiveCfg = Debug|Any CPU
+		{4C44E9EC-1488-4946-9047-99235B95A605}.Docs|Any CPU.Build.0 = Debug|Any CPU
+		{4C44E9EC-1488-4946-9047-99235B95A605}.Docs|x64.ActiveCfg = Debug|Any CPU
+		{4C44E9EC-1488-4946-9047-99235B95A605}.Docs|x64.Build.0 = Debug|Any CPU
+		{4C44E9EC-1488-4946-9047-99235B95A605}.Docs|x86.ActiveCfg = Debug|Any CPU
+		{4C44E9EC-1488-4946-9047-99235B95A605}.Docs|x86.Build.0 = Debug|Any CPU
+		{4C44E9EC-1488-4946-9047-99235B95A605}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{4C44E9EC-1488-4946-9047-99235B95A605}.Release|Any CPU.Build.0 = Release|Any CPU
+		{4C44E9EC-1488-4946-9047-99235B95A605}.Release|x64.ActiveCfg = Release|Any CPU
+		{4C44E9EC-1488-4946-9047-99235B95A605}.Release|x64.Build.0 = Release|Any CPU
+		{4C44E9EC-1488-4946-9047-99235B95A605}.Release|x86.ActiveCfg = Release|Any CPU
+		{4C44E9EC-1488-4946-9047-99235B95A605}.Release|x86.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
