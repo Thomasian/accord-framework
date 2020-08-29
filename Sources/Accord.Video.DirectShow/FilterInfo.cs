@@ -211,7 +211,7 @@ namespace Accord.Video.DirectShow
             return name;
         }
 
-        public IMoniker GetMoniker()
+        private IMoniker GetMoniker()
         {
             IBindCtx bindCtx = null;
             IMoniker moniker = null;

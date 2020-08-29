@@ -1,7 +1,7 @@
 ﻿
 Microsoft Visual Studio Solution File, Format Version 12.00
-# Visual Studio 15
-VisualStudioVersion = 15.0.26906.1
+# Visual Studio Version 16
+VisualStudioVersion = 16.0.30413.136
 MinimumVisualStudioVersion = 10.0.40219.1
 Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Unit Tests", "Unit Tests", "{D059B679-8B38-44FE-BEC6-8DFF9271CE59}"
 	ProjectSection(SolutionItems) = preProject
@@ -17,6 +17,7 @@ Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Solution Items", "Solution 
 		Accord.NET.psess = Accord.NET.psess
 		Accord.NET.ruleset = Accord.NET.ruleset
 		Accord.NET.targets = Accord.NET.targets
+		Accord.NET.testrunconfig = Accord.NET.testrunconfig
 		Accord.NET.vsmdi = Accord.NET.vsmdi
 		Building.txt = Building.txt
 		..\Contributors.txt = ..\Contributors.txt

@@ -25,6 +25,9 @@ namespace Accord.Video.DirectShow
         public static readonly Guid AudioInputDevice =
             new Guid( 0x33D9A762, 0x90C8, 0x11D0, 0xBD, 0x43, 0x00, 0xA0, 0xC9, 0x11, 0xCE, 0x86 );
 
+        /// <summary>
+        /// Audio render category.
+        /// </summary>
         public static readonly Guid AudioRenderCategory =
             new Guid( 0xe0f158e1, 0xcb04, 0x11d0, 0xbd, 0x4e, 0x00, 0xa0, 0xc9, 0x11, 0xce, 0x86 );
 

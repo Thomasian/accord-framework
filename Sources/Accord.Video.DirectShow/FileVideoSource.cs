@@ -99,6 +99,11 @@ namespace Accord.Video.DirectShow
         public event NewFrameEventHandler NewFrame;
 
         /// <summary>
+        /// New frame array event
+        /// </summary>
+        public event NewFrameArrayEventHandler NewFrameArray;
+
+        /// <summary>
         /// Video source error event.
         /// </summary>
         /// 
@@ -115,6 +120,11 @@ namespace Accord.Video.DirectShow
         /// </remarks>
         /// 
         public event PlayingFinishedEventHandler PlayingFinished;
+
+        /// <summary>
+        /// Raise NewFrameArray or NewFrame event
+        /// </summary>
+        public bool NewFrameAsByteArray { get; set; } = true;
 
         /// <summary>
         /// Video source.
@@ -580,6 +590,21 @@ namespace Accord.Video.DirectShow
                 NewFrame(this, new NewFrameEventArgs(image));
         }
 
+        /// <summary>
+        /// Notifies client about new frame (byte array)
+        /// </summary>
+        /// <param name="width">Image width</param>
+        /// <param name="height">Image height</param>
+        /// <param name="pixels">Image array</param>
+        protected void OnNewFrameArray(int width, int height, byte[] pixels)
+        {
+            framesReceived++;
+            bytesReceived += pixels.Length;
+
+            if ((!stopEvent.WaitOne(0, false)) && (NewFrameArray != null))
+                NewFrameArray(this, new NewFrameArrayEventArgs(width, height, pixels));
+        }
+
         //
         // Video grabber
         //
@@ -618,40 +643,70 @@ namespace Accord.Video.DirectShow
             {
                 if (parent.NewFrame != null)
                 {
-                    // create new image
-                    System.Drawing.Bitmap image = new Bitmap(width, height, PixelFormat.Format24bppRgb);
+                    var pixelFormat = PixelFormat.Format24bppRgb;
 
-                    // lock bitmap data
-                    BitmapData imageData = image.LockBits(
-                        new Rectangle(0, 0, width, height),
-                        ImageLockMode.ReadWrite,
-                        PixelFormat.Format24bppRgb);
-
-                    // copy image data
-                    int srcStride = imageData.Stride;
-                    int dstStride = imageData.Stride;
-
-                    unsafe
+                    if (parent.NewFrameAsByteArray)
                     {
-                        byte* dst = (byte*)imageData.Scan0.ToPointer() + dstStride * (height - 1);
-                        byte* src = (byte*)buffer.ToPointer();
+                        int stride = Image.GetPixelFormatSize(pixelFormat) * width / 8;
 
-                        for (int y = 0; y < height; y++)
+                        // Frame as byte array
+                        byte[] managedArray = new byte[bufferLen];
+                        unsafe
                         {
-                            Win32.memcpy(dst, src, srcStride);
-                            dst -= dstStride;
-                            src += srcStride;
+                            fixed (byte* ptr = managedArray)
+                            {
+                                byte* dst = ptr + stride * (Height - 1);
+                                byte* src = (byte*)buffer.ToPointer();
+
+                                for (int y = 0; y < height; y++)
+                                {
+                                    Win32.memcpy(dst, src, stride);
+                                    dst -= stride;
+                                    src += stride;
+                                }
+                            }
                         }
+                        parent.OnNewFrameArray(Width, Height, managedArray);
                     }
+                    else
+                    {
+                        // Frame as bitmap
 
-                    // unlock bitmap data
-                    image.UnlockBits(imageData);
+                        // create new image
+                        System.Drawing.Bitmap image = new Bitmap(width, height, pixelFormat);
 
-                    // notify parent
-                    parent.OnNewFrame(image);
+                        // lock bitmap data
+                        BitmapData imageData = image.LockBits(
+                            new Rectangle(0, 0, width, height),
+                            ImageLockMode.ReadWrite,
+                            PixelFormat.Format24bppRgb);
 
-                    // release the image
-                    image.Dispose();
+                        // copy image data
+                        int srcStride = imageData.Stride;
+                        int dstStride = imageData.Stride;
+
+                        unsafe
+                        {
+                            byte* dst = (byte*)imageData.Scan0.ToPointer() + dstStride * (height - 1);
+                            byte* src = (byte*)buffer.ToPointer();
+
+                            for (int y = 0; y < height; y++)
+                            {
+                                Win32.memcpy(dst, src, srcStride);
+                                dst -= dstStride;
+                                src += srcStride;
+                            }
+                        }
+
+                        // unlock bitmap data
+                        image.UnlockBits(imageData);
+
+                        // notify parent
+                        parent.OnNewFrame(image);
+
+                        // release the image
+                        image.Dispose();
+                    }
                 }
 
                 return 0;

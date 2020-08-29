@@ -14,6 +14,7 @@ using Accord.Video;
 using Accord.Video.DirectShow;
 using System;
 using System.Collections.Generic;
+using System.Drawing.Imaging;
 using System.Linq;
 using System.Windows;
 using System.Windows.Media;
@@ -46,12 +47,14 @@ namespace WPFCoreTestApp
 
             /*
             var videoCaptureDevice = new VideoCaptureDevice(videoDevices[0].MonikerString);
-            videoSource = videoCaptureDevice;
 
             RefreshSupportedFrameSizes(videoCaptureDevice);
             VideoCapabilities caps = videoCapabilitiesDictionary[videoResolutions.Last()];
             videoCaptureDevice.VideoResolution = caps;
             var captureSize = caps.FrameSize;
+            videoCaptureDevice.NewFrameArray += video_NewFrameArray;
+            videoCaptureDevice.NewFrameAsByteArray = false;
+            videoSource = videoCaptureDevice;
             */
 
             //*
@@ -61,6 +64,8 @@ namespace WPFCoreTestApp
             //videoSource = new FileVideoSource(@"D:\Videos\Genius S01 Einstein (2017 NG 360p re-webrip)\Genius S01E01 Einstein Chapter One.mp4");
             var fileVideoDevice = new FileVideoSource(@"C:\ProgramData\Electrobrain Enterprises\Automizer\Queue Management System\Multimedia Display\Data Files\SampleVideo1.mp4");
             //fileVideoDevice.PreventFreezing = true;
+            fileVideoDevice.NewFrameArray += video_NewFrameArray;
+            fileVideoDevice.NewFrameAsByteArray = true;
             videoSource = fileVideoDevice;
             //*/
 
@@ -68,6 +73,45 @@ namespace WPFCoreTestApp
             videoSource.VideoSourceError += VideoSource_VideoSourceError;
 
             videoSource.Start();
+        }
+
+        byte[] pixels;
+        int width;
+        int height;
+        BitmapSource bitmapSource;
+        private void video_NewFrameArray(object sender, NewFrameArrayEventArgs eventArgs)
+        {
+            if (pixels != null)
+                return;
+
+            if (!Dispatcher.CheckAccess())
+            {
+                pixels = eventArgs.Pixels;
+                width = eventArgs.PixelWidth;
+                height = eventArgs.PixelHeight;
+                //bitmapSource = BitmapSourceFromArray(pixels, width, height);
+                try
+                {
+                    Dispatcher.Invoke(() =>
+                    {
+                        image.Source = BitmapSourceFromArray(pixels, width, height);
+                        pixels = null;
+                        //image.Source = bitmapSource;
+                    });
+                }
+                catch (Exception ex)
+                {
+                    MessageBox.Show(ex.Message);
+                }
+            }
+        }
+
+
+        private BitmapSource BitmapSourceFromArray(byte[] pixels, int width, int height)
+        {
+            WriteableBitmap bitmap = new WriteableBitmap(width, height, 96, 96, PixelFormats.Bgr24, null);
+            bitmap.WritePixels(new Int32Rect(0, 0, width, height), pixels, width * (bitmap.Format.BitsPerPixel / 8), 0);
+            return bitmap;
         }
 
         private void VideoSource_VideoSourceError(object sender, VideoSourceErrorEventArgs eventArgs)

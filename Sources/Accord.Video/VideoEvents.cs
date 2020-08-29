@@ -30,6 +30,7 @@
 namespace Accord.Video
 {
     using System;
+    using System.Drawing.Imaging;
 
     /// <summary>
     /// Delegate for new frame event handler.
@@ -39,6 +40,13 @@ namespace Accord.Video
     /// <param name="eventArgs">Event arguments.</param>
     /// 
     public delegate void NewFrameEventHandler(object sender, NewFrameEventArgs eventArgs);
+
+    /// <summary>
+    /// Delegate for new frame (byte array) event handler
+    /// </summary>
+    /// <param name="sender">Sender object.</param>
+    /// <param name="eventArgs">Event arguments</param>
+    public delegate void NewFrameArrayEventHandler(object sender, NewFrameArrayEventArgs eventArgs);
 
     /// <summary>
     /// Delegate for video source error event handler.
@@ -112,6 +120,38 @@ namespace Accord.Video
         public System.Drawing.Bitmap Frame
         {
             get { return frame; }
+        }
+    }
+
+    /// <summary>
+    /// Arguments for new frame (byte array) event from video source.
+    /// </summary>
+    public class NewFrameArrayEventArgs : EventArgs
+    {
+        /// <summary>
+        /// Image width
+        /// </summary>
+        public int PixelWidth { get; private set; }
+        /// <summary>
+        /// Image height
+        /// </summary>
+        public int PixelHeight { get; private set; }
+        /// <summary>
+        /// Pixels
+        /// </summary>
+        public byte[] Pixels { get; private set; }
+
+        /// <summary>
+        /// Initializes a new instance of the <see cref="NewFrameArrayEventArgs"/> class.
+        /// </summary>
+        /// <param name="pixelWidth">Image width</param>
+        /// <param name="pixelHeight">Image height</param>
+        /// <param name="pixels">Image array</param>
+        public NewFrameArrayEventArgs(int pixelWidth, int pixelHeight, byte[] pixels)
+        {
+            this.PixelWidth = pixelWidth;
+            this.PixelHeight = pixelHeight;
+            this.Pixels = pixels;
         }
     }
 

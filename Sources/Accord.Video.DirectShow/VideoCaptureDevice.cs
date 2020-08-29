@@ -230,6 +230,11 @@ namespace Accord.Video.DirectShow
         public event NewFrameEventHandler NewFrame;
 
         /// <summary>
+        /// New frame array event
+        /// </summary>
+        public event NewFrameArrayEventHandler NewFrameArray;
+
+        /// <summary>
         /// Snapshot frame event.
         /// </summary>
         /// 
@@ -248,6 +253,24 @@ namespace Accord.Video.DirectShow
         public event NewFrameEventHandler SnapshotFrame;
 
         /// <summary>
+        /// Snapshot frame event.
+        /// </summary>
+        /// 
+        /// <remarks><para>Notifies clients about new available snapshot frame - the one which comes when
+        /// camera's snapshot/shutter button is pressed.</para>
+        /// 
+        /// <para>See documentation to <see cref="ProvideSnapshotsArray"/> for additional information.</para>
+        /// 
+        /// <para><note>Since video source may have multiple clients, each client is responsible for
+        /// making a copy (cloning) of the passed snapshot frame, because the video source disposes its
+        /// own original copy after notifying of clients.</note></para>
+        /// </remarks>
+        /// 
+        /// <seealso cref="ProvideSnapshots"/>
+        /// 
+        public event NewFrameArrayEventHandler SnapshotFrameArray;
+
+        /// <summary>
         /// Video source error event.
         /// </summary>
         /// 
@@ -264,6 +287,11 @@ namespace Accord.Video.DirectShow
         /// </remarks>
         /// 
         public event PlayingFinishedEventHandler PlayingFinished;
+
+        /// <summary>
+        /// Raise NewFrameArray or NewFrame event
+        /// </summary>
+        public bool NewFrameAsByteArray { get; set; } = false;
 
         /// <summary>
         /// Video source.
@@ -1645,6 +1673,21 @@ namespace Accord.Video.DirectShow
         }
 
         /// <summary>
+        /// Notifies client about new frame (byte array)
+        /// </summary>
+        /// <param name="width">Image width</param>
+        /// <param name="height">Image height</param>
+        /// <param name="pixels">Image array</param>
+        protected void OnNewFrameArray(int width, int height, byte[] pixels)
+        {
+            framesReceived++;
+            bytesReceived += pixels.Length;
+
+            if ((!stopEvent.WaitOne(0, false)) && (NewFrameArray != null))
+                NewFrameArray(this, new NewFrameArrayEventArgs(width, height, pixels));
+        }
+
+        /// <summary>
         /// Notifies clients about new snapshot frame.
         /// </summary>
         /// 
@@ -1660,6 +1703,25 @@ namespace Accord.Video.DirectShow
             {
                 if ((!stopEvent.WaitOne(0, false)) && (SnapshotFrame != null))
                     SnapshotFrame(this, new NewFrameEventArgs(image));
+            }
+        }
+
+        /// <summary>
+        /// Notifies clients about new snapshot frame.
+        /// </summary>
+        /// 
+        /// <param name="image">New snapshot's image.</param>
+        /// 
+        private void OnSnapshotFrameArray(int width, int height, byte[] pixels)
+        {
+            TimeSpan timeSinceStarted = DateTime.Now - startTime;
+
+            // TODO: need to find better way to ignore the first snapshot, which is sent
+            // automatically (or better disable it)
+            if (timeSinceStarted.TotalSeconds >= 4)
+            {
+                if ((!stopEvent.WaitOne(0, false)) && (SnapshotFrame != null))
+                    SnapshotFrameArray(this, new NewFrameArrayEventArgs(width, height, pixels));
             }
         }
 
@@ -1705,47 +1767,84 @@ namespace Accord.Video.DirectShow
             {
                 if (parent.NewFrame != null)
                 {
-                    // create new image
-                    System.Drawing.Bitmap image = new Bitmap(width, height, this.pixelFormat);
-
-                    // lock bitmap data
-                    BitmapData imageData = image.LockBits(
-                        new Rectangle(0, 0, width, height),
-                        ImageLockMode.ReadWrite,
-                        this.pixelFormat);
-
-                    // copy image data
-                    int srcStride = imageData.Stride;
-                    int dstStride = imageData.Stride;
-
-                    unsafe
+                    if (parent.NewFrameAsByteArray)
                     {
-                        byte* dst = (byte*)imageData.Scan0.ToPointer() + dstStride * (height - 1);
-                        byte* src = (byte*)buffer.ToPointer();
+                        int stride = Image.GetPixelFormatSize(this.pixelFormat) * width / 8;
 
-                        for (int y = 0; y < height; y++)
+                        // Frame as byte array
+                        byte[] managedArray = new byte[bufferLen];
+                        unsafe
                         {
-                            Win32.memcpy(dst, src, srcStride);
-                            dst -= dstStride;
-                            src += srcStride;
+                            fixed (byte* ptr = managedArray)
+                            {
+                                byte* dst = ptr + stride * (Height - 1);
+                                byte* src = (byte*)buffer.ToPointer();
+
+                                for (int y = 0; y < height; y++)
+                                {
+                                    Win32.memcpy(dst, src, stride);
+                                    dst -= stride;
+                                    src += stride;
+                                }
+                            }
                         }
-                    }
 
-                    // unlock bitmap data
-                    image.UnlockBits(imageData);
+                        // notify parent
+                        if (snapshotMode)
+                        {
+                            parent.OnSnapshotFrameArray(Width, Height, managedArray);
+                        }
+                        else
+                        {
+                            parent.OnNewFrameArray(Width, Height, managedArray);
+                        }
 
-                    // notify parent
-                    if (snapshotMode)
-                    {
-                        parent.OnSnapshotFrame(image);
                     }
                     else
                     {
-                        parent.OnNewFrame(image);
-                    }
+                        // Frame as bitmap
+                        // create new image
+                        System.Drawing.Bitmap image = new Bitmap(width, height, this.pixelFormat);
 
-                    // release the image
-                    image.Dispose();
+                        // lock bitmap data
+                        BitmapData imageData = image.LockBits(
+                            new Rectangle(0, 0, width, height),
+                            ImageLockMode.ReadWrite,
+                            this.pixelFormat);
+
+                        // copy image data
+                        int srcStride = imageData.Stride;
+                        int dstStride = imageData.Stride;
+
+                        unsafe
+                        {
+                            byte* dst = (byte*)imageData.Scan0.ToPointer() + dstStride * (height - 1);
+                            byte* src = (byte*)buffer.ToPointer();
+
+                            for (int y = 0; y < height; y++)
+                            {
+                                Win32.memcpy(dst, src, srcStride);
+                                dst -= dstStride;
+                                src += srcStride;
+                            }
+                        }
+
+                        // unlock bitmap data
+                        image.UnlockBits(imageData);
+
+                        // notify parent
+                        if (snapshotMode)
+                        {
+                            parent.OnSnapshotFrame(image);
+                        }
+                        else
+                        {
+                            parent.OnNewFrame(image);
+                        }
+
+                        // release the image
+                        image.Dispose();
+                    }
                 }
 
                 return 0;
