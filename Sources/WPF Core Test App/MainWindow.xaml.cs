@@ -14,10 +14,8 @@ using Accord.Video;
 using Accord.Video.DirectShow;
 using System;
 using System.Collections.Generic;
-using System.Drawing.Imaging;
-using System.Linq;
-using System.Runtime.InteropServices.WindowsRuntime;
 using System.Windows;
+using System.Windows.Controls;
 using System.Windows.Media;
 using System.Windows.Media.Imaging;
 
@@ -76,34 +74,6 @@ namespace WPFCoreTestApp
             videoSource.Start();
         }
 
-        // Using NewFrameArray creates a BitmapSource object directly from a byte array
-        private void video_NewFrameArray(object sender, NewFrameArrayEventArgs eventArgs)
-        {
-            if (!Dispatcher.CheckAccess())
-            {
-                var bitmapSource = BitmapSourceFromArray(eventArgs.Pixels, eventArgs.PixelWidth, eventArgs.PixelHeight);
-                bitmapSource.Freeze();
-                try
-                {
-                    Dispatcher.Invoke(() =>
-                    {
-                        image.Source = bitmapSource;
-                    });
-                }
-                catch (Exception ex)
-                {
-                    MessageBox.Show(ex.Message);
-                }
-            }
-        }
-
-        private BitmapSource BitmapSourceFromArray(byte[] pixels, int width, int height)
-        {
-            WriteableBitmap bitmap = new WriteableBitmap(width, height, 96, 96, PixelFormats.Bgr24, null);
-            bitmap.WritePixels(new Int32Rect(0, 0, width, height), pixels, width * (bitmap.Format.BitsPerPixel / 8), 0);
-            return bitmap;
-        }
-
         private void VideoSource_VideoSourceError(object sender, VideoSourceErrorEventArgs eventArgs)
         {
             MessageBox.Show(eventArgs.Description);
@@ -118,45 +88,68 @@ namespace WPFCoreTestApp
             }
         }
 
+
         // This method converts Bitmap (WinForm) to BitmapSource (WPF)
-        // This uses considerably more memory that NewFrameArray when used in WPF
         private void video_NewFrame(object sender, NewFrameEventArgs eventArgs)
         {
-            if (videoSource == null)
-                return;
-
-            BitmapSource bmp = Convert(eventArgs.Frame);
-            bmp.Freeze();
-            if (!Dispatcher.CheckAccess())
+            Dispatcher.Invoke(() =>
             {
                 try
                 {
-                    Dispatcher.Invoke(() =>
-                    {
-                        image.Source = bmp;
-                    });
+                    UpdateBitmapSource(image, eventArgs.Frame);
                 }
                 catch (Exception ex)
                 {
                     MessageBox.Show(ex.Message);
                 }
-            }
+            });
+        }
+        // Using NewFrameArray creates a BitmapSource object directly from a byte array
+        private void video_NewFrameArray(object sender, NewFrameArrayEventArgs eventArgs)
+        {
+            Dispatcher.Invoke(() =>
+            {
+                try
+                {
+                    UpdateBitmapSource(image, eventArgs.Pixels, eventArgs.PixelWidth, eventArgs.PixelHeight);
+                }
+                catch (Exception ex)
+                {
+                    MessageBox.Show(ex.Message);
+                }
+            });
         }
 
-        public static BitmapSource Convert(System.Drawing.Bitmap bitmap)
+        private static void UpdateBitmapSource(Image control, System.Drawing.Bitmap bitmap)
         {
             var bitmapData = bitmap.LockBits(
                 new System.Drawing.Rectangle(0, 0, bitmap.Width, bitmap.Height),
                 System.Drawing.Imaging.ImageLockMode.ReadOnly, bitmap.PixelFormat);
 
-            var bitmapSource = BitmapSource.Create(
-                bitmapData.Width, bitmapData.Height,
-                bitmap.HorizontalResolution, bitmap.VerticalResolution,
-                PixelFormats.Bgr24, null,
-                bitmapData.Scan0, bitmapData.Stride * bitmapData.Height, bitmapData.Stride);
+            var writableBitmap = control.Source as WriteableBitmap;
+            if (control.Source == null || control.Source.Width != bitmapData.Width || control.Source.Height != bitmapData.Height)
+            {
+                writableBitmap = new WriteableBitmap(bitmapData.Width, bitmapData.Height, 96, 96, PixelFormats.Bgr24, null);
+                control.Source = writableBitmap;
+            }
+
+            writableBitmap.WritePixels(
+                new Int32Rect(0, 0, bitmapData.Width, bitmapData.Height),
+                bitmapData.Scan0,
+                bitmapData.Stride * bitmapData.Height, bitmapData.Stride);
 
             bitmap.UnlockBits(bitmapData);
-            return bitmapSource;
+        }
+        private static void UpdateBitmapSource(Image control, byte[] pixels, int width, int height)
+        {
+            var writableBitmap = control.Source as WriteableBitmap;
+            if (control.Source == null || control.Source.Width != width || control.Source.Height != height)
+            {
+                writableBitmap = new WriteableBitmap(width, height, 96, 96, PixelFormats.Bgr24, null);
+                control.Source = writableBitmap;
+            }
+
+            writableBitmap.WritePixels(new Int32Rect(0, 0, width, height), pixels, width * (PixelFormats.Bgr24.BitsPerPixel / 8), 0);
         }
 
         private void Window_Closing(object sender, System.ComponentModel.CancelEventArgs e)
