@@ -289,7 +289,7 @@ namespace Accord.Video.DirectShow
         public event PlayingFinishedEventHandler PlayingFinished;
 
         /// <summary>
-        /// Raise NewFrameArray or NewFrame event
+        /// Raise NewFrameArray (WPF) or NewFrame event (WinForm)
         /// </summary>
         public bool NewFrameAsByteArray { get; set; } = false;
 

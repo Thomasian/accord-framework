@@ -16,6 +16,7 @@ using System;
 using System.Collections.Generic;
 using System.Drawing.Imaging;
 using System.Linq;
+using System.Runtime.InteropServices.WindowsRuntime;
 using System.Windows;
 using System.Windows.Media;
 using System.Windows.Media.Imaging;
@@ -65,38 +66,28 @@ namespace WPFCoreTestApp
             var fileVideoDevice = new FileVideoSource(@"C:\ProgramData\Electrobrain Enterprises\Automizer\Queue Management System\Multimedia Display\Data Files\SampleVideo1.mp4");
             //fileVideoDevice.PreventFreezing = true;
             fileVideoDevice.NewFrameArray += video_NewFrameArray;
-            fileVideoDevice.NewFrameAsByteArray = true;
+            fileVideoDevice.NewFrameAsByteArray = false;
             videoSource = fileVideoDevice;
             //*/
 
-            videoSource.NewFrame += new NewFrameEventHandler(video_NewFrame);
+            videoSource.NewFrame += video_NewFrame;
             videoSource.VideoSourceError += VideoSource_VideoSourceError;
 
             videoSource.Start();
         }
 
-        byte[] pixels;
-        int width;
-        int height;
-        BitmapSource bitmapSource;
+        // Using NewFrameArray creates a BitmapSource object directly from a byte array
         private void video_NewFrameArray(object sender, NewFrameArrayEventArgs eventArgs)
         {
-            if (pixels != null)
-                return;
-
             if (!Dispatcher.CheckAccess())
             {
-                pixels = eventArgs.Pixels;
-                width = eventArgs.PixelWidth;
-                height = eventArgs.PixelHeight;
-                //bitmapSource = BitmapSourceFromArray(pixels, width, height);
+                var bitmapSource = BitmapSourceFromArray(eventArgs.Pixels, eventArgs.PixelWidth, eventArgs.PixelHeight);
+                bitmapSource.Freeze();
                 try
                 {
                     Dispatcher.Invoke(() =>
                     {
-                        image.Source = BitmapSourceFromArray(pixels, width, height);
-                        pixels = null;
-                        //image.Source = bitmapSource;
+                        image.Source = bitmapSource;
                     });
                 }
                 catch (Exception ex)
@@ -105,7 +96,6 @@ namespace WPFCoreTestApp
                 }
             }
         }
-
 
         private BitmapSource BitmapSourceFromArray(byte[] pixels, int width, int height)
         {
@@ -128,20 +118,22 @@ namespace WPFCoreTestApp
             }
         }
 
-        System.Drawing.Bitmap bmp;
+        // This method converts Bitmap (WinForm) to BitmapSource (WPF)
+        // This uses considerably more memory that NewFrameArray when used in WPF
         private void video_NewFrame(object sender, NewFrameEventArgs eventArgs)
         {
             if (videoSource == null)
                 return;
 
-            bmp = eventArgs.Frame;
+            BitmapSource bmp = Convert(eventArgs.Frame);
+            bmp.Freeze();
             if (!Dispatcher.CheckAccess())
             {
                 try
                 {
                     Dispatcher.Invoke(() =>
                     {
-                        image.Source = Convert(bmp);
+                        image.Source = bmp;
                     });
                 }
                 catch (Exception ex)
