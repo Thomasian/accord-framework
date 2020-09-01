@@ -51,6 +51,7 @@ namespace WPFCoreTestApp
             RefreshSupportedFrameSizes(videoCaptureDevice);
             VideoCapabilities caps = videoCapabilitiesDictionary[videoResolutions.Last()];
             videoCaptureDevice.VideoResolution = caps;
+            videoCaptureDevice.CrossbarVideoInput = availableVideoInputs[1];
             var captureSize = caps.FrameSize;
             videoCaptureDevice.NewFrameArray += video_NewFrameArray;
             videoCaptureDevice.NewFrameAsByteArray = true;
