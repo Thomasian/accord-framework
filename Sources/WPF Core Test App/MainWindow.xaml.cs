@@ -14,6 +14,7 @@ using Accord.Video;
 using Accord.Video.DirectShow;
 using System;
 using System.Collections.Generic;
+using System.Linq;
 using System.Windows;
 using System.Windows.Controls;
 using System.Windows.Media;
@@ -44,7 +45,7 @@ namespace WPFCoreTestApp
 
             var videoDevices = new FilterInfoCollection(FilterCategory.VideoInputDevice);
 
-            /*
+            //*
             var videoCaptureDevice = new VideoCaptureDevice(videoDevices[0].MonikerString);
 
             RefreshSupportedFrameSizes(videoCaptureDevice);
@@ -52,11 +53,12 @@ namespace WPFCoreTestApp
             videoCaptureDevice.VideoResolution = caps;
             var captureSize = caps.FrameSize;
             videoCaptureDevice.NewFrameArray += video_NewFrameArray;
-            videoCaptureDevice.NewFrameAsByteArray = false;
+            videoCaptureDevice.NewFrameAsByteArray = true;
             videoSource = videoCaptureDevice;
-            */
+            SetVolume();
+            //*/
 
-            //*
+            /*
             //var fileVideoDevice = new FileVideoSource(@"D:\Videos\Genius S01 Einstein (2017 NG 360p re-webrip)\Genius S01E01 Einstein Chapter One.mp4");
             //videoSource = new ScreenCaptureStream(Screen.AllScreens[0].Bounds, 100);
             //videoSource = new FileVideoSource(@"E:\Movies\Argo (2012)\Argo.2012.720p.BluRay.x264.YIFY.mp4");
@@ -66,7 +68,7 @@ namespace WPFCoreTestApp
             fileVideoDevice.NewFrameArray += video_NewFrameArray;
             fileVideoDevice.NewFrameAsByteArray = false;
             videoSource = fileVideoDevice;
-            //*/
+            */
 
             videoSource.NewFrame += video_NewFrame;
             videoSource.VideoSourceError += VideoSource_VideoSourceError;
@@ -230,6 +232,18 @@ namespace WPFCoreTestApp
         }
 
         #endregion
+
+        private void slider_ValueChanged(object sender, RoutedPropertyChangedEventArgs<double> e)
+        {
+                SetVolume();
+        }
+
+        private void SetVolume()
+        {
+            var videoCaptureDevice = videoSource as VideoCaptureDevice;
+            if (videoCaptureDevice != null)
+                videoCaptureDevice.SetLinearVolume(Convert.ToInt32(slider.Value));
+        }
 
     }
 }

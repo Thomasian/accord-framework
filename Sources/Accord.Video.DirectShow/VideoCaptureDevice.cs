@@ -38,6 +38,9 @@ namespace Accord.Video.DirectShow
 
     using Accord.Video;
     using Accord.Video.DirectShow.Internals;
+    using System.Security;
+    using System.ComponentModel.DataAnnotations;
+    using System.ComponentModel;
 
     /// <summary>
     /// Video source for local video capture device (for example USB webcam).
@@ -90,6 +93,107 @@ namespace Accord.Video.DirectShow
         private bool needToDisplayPropertyPage = false;
         private bool needToDisplayCrossBarPropertyPage = false;
         private IntPtr parentWindowForPropertyPage = IntPtr.Zero;
+
+        #region VolumeControl
+
+        private IBasicAudio _basicAudio;
+
+        /// <summary>
+        /// The IBasicAudio volume value for silence
+        /// </summary>
+        private const int DSHOW_VOLUME_SILENCE = -10000;
+
+        /// <summary>
+        /// The IBasicAudio volume value for full volume
+        /// </summary>
+        private const int DSHOW_VOLUME_MAX = 0;
+
+        // store volume separately instead of using GetVolume since _basicAudio is released when player is not running
+        private double _volume = 1;
+        /// <summary>
+        /// Sets or gets the (logarithmic) volume
+        /// </summary>
+        public double Volume
+        {
+            get { return _volume; }
+            set
+            {
+                if (value < 0)
+                    _volume = 0;
+                else if (value > 1)
+                    _volume = 1;
+                else
+                    _volume = value;
+
+                SetVolume();
+            }
+        }
+
+        /// <summary>
+        /// Sets the player (linear) volume from 0 to 100.
+        /// </summary>
+        public void SetLinearVolume(int volume)
+        {
+            double d = volume;
+            if (d == 0)         // Mute
+                d = 1;
+            else if (d == 1)    // Lowest volume
+                d = 1.5;
+
+            // Compute volume as percentage of maximum
+            Volume = Math.Log10(d * 0.65) / Math.Log10(100 * 0.65);
+        }
+
+        /// <summary>
+        /// Gets the audio volume.  Specifies the volume, as a 
+        /// number from 0 to 1.  Full volume is 1, and 0 is silence.
+        /// </summary>
+        private double GetVolume()
+        {
+            /* Check if we even have an 
+             * audio interface */
+            if (_basicAudio == null)
+                return 0;
+
+            int dShowVolume;
+
+            /* Get the current volume value from the interface */
+            _basicAudio.get_Volume(out dShowVolume);
+
+            /* Do calulations to convert to a base of 0 for silence */
+            dShowVolume -= DSHOW_VOLUME_SILENCE;
+            return (double)dShowVolume / -DSHOW_VOLUME_SILENCE;
+
+        }
+
+        /// <summary>
+        /// Sets the audio volume.  Specifies the volume, as a 
+        /// number from 0 to 1.  Full volume is 1, and 0 is silence.
+        /// </summary>
+        private void SetVolume()
+        {
+            /* Check if we even have an
+             * audio interface */
+            if (_basicAudio == null)
+                return;
+
+            if (Volume <= 0) /* Value should not be negative or else we treat as silence */
+                _basicAudio.put_Volume(DSHOW_VOLUME_SILENCE);
+            else if (Volume >= 1)/* Value should not be greater than one or else we treat as maximum volume */
+                _basicAudio.put_Volume(DSHOW_VOLUME_MAX);
+            else
+            {
+                /* With the IBasicAudio interface, sound is DSHOW_VOLUME_SILENCE
+                 * for silence and DSHOW_VOLUME_MAX for full volume
+                 * so we calculate that here based off an input of 0 of silence and 1.0
+                 * for full audio */
+                int dShowVolume = (int)((1 - Volume) * DSHOW_VOLUME_SILENCE);
+                _basicAudio.put_Volume(dShowVolume);
+            }
+
+        }
+
+        #endregion
 
         // video capture source object
         private object sourceObject = null;
@@ -1174,7 +1278,7 @@ namespace Accord.Video.DirectShow
                     {
                         VideoControlFlags caps;
                         videoControl.GetCaps(pinStillImage, out caps);
-                        isSnapshotSupported = (((caps & VideoControlFlags.ExternalTriggerEnable) != 0) || 
+                        isSnapshotSupported = (((caps & VideoControlFlags.ExternalTriggerEnable) != 0) ||
                                                ((caps & VideoControlFlags.Trigger) != 0));
                     }
                 }
@@ -1249,6 +1353,11 @@ namespace Accord.Video.DirectShow
                             mediaType.Dispose();
                         }
                     }
+
+                    // get audio control
+                    _basicAudio = graphObject as IBasicAudio;
+                    var v = GetVolume();
+                    SetVolume();
 
                     // get media control
                     mediaControl = (IMediaControl)graphObject;
@@ -1356,6 +1465,11 @@ namespace Accord.Video.DirectShow
                 videoSampleGrabber = null;
                 snapshotSampleGrabber = null;
 
+                if (_basicAudio != null)
+                {
+                    Marshal.ReleaseComObject(_basicAudio);
+                    _basicAudio = null;
+                }
                 if (graphObject != null)
                 {
                     Marshal.ReleaseComObject(graphObject);
@@ -1850,5 +1964,17 @@ namespace Accord.Video.DirectShow
                 return 0;
             }
         }
+
+        [Guid("56a868b3-0ad4-11ce-b03a-0020af0ba770")]
+        [InterfaceType(ComInterfaceType.InterfaceIsDual)]
+        [SuppressUnmanagedCodeSecurity]
+        public interface IBasicAudio
+        {
+            int put_Volume(int lVolume);
+            int get_Volume(out int plVolume);
+            int put_Balance(int lBalance);
+            int get_Balance(out int plBalance);
+        }
+
     }
 }
