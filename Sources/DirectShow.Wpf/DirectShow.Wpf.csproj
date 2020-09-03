@@ -6,6 +6,11 @@
   </PropertyGroup>
 
   <ItemGroup>
+    <PackageReference Include="FontAwesome5" Version="2.0.8" />
+    <PackageReference Include="MiqM.Xceed.Wpf.Toolkit.NETCore" Version="3.5.1.3" />
+  </ItemGroup>
+
+  <ItemGroup>
     <ProjectReference Include="..\Accord.Video.DirectShow\Accord.Video.DirectShow (NETStandard).csproj" />
   </ItemGroup>
 

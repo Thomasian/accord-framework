@@ -1,11 +1,9 @@
-﻿using Accord.Imaging;
-using Accord.Video;
+﻿using Accord.Video;
 using Accord.Video.DirectShow;
 using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Windows;
-using System.Windows.Controls;
 using System.Windows.Media;
 using System.Windows.Media.Imaging;
 
@@ -18,59 +16,9 @@ namespace DirectShow.Wpf
 
         #region Properties
 
-        public string _deviceName;
-        public string DeviceName
-        {
-            get { return _deviceName; }
-            set
-            {
-                if (_deviceName != value)
-                {
-                    _deviceName = value;
-                    if (_isStarted)
-                    {
-                        Stop();
-                        Start();
-                    }
-                }
-            }
-        }
-
-        public string _videoResolution;
-        public string VideoResolution
-        {
-            get { return _videoResolution; }
-            set
-            {
-                if (_videoResolution != value)
-                {
-                    _videoResolution = value;
-                    if (_isStarted)
-                    {
-                        Stop();
-                        Start();
-                    }
-                }
-            }
-        }
-
-        public string _videoInput;
-        public string VideoInput
-        {
-            get { return _videoInput; }
-            set
-            {
-                if (_videoInput != value)
-                {
-                    _videoInput = value;
-                    if (_isStarted)
-                    {
-                        Stop();
-                        Start();
-                    }
-                }
-            }
-        }
+        public string DeviceName { get; set; }
+        public string VideoResolution { get; set; }
+        public string VideoInput { get; set; }
 
         private int _volume = 0;
         public int Volume
@@ -102,7 +50,7 @@ namespace DirectShow.Wpf
 
         private void VideoCaptureDevice_VideoSourceError(object sender, VideoSourceErrorEventArgs eventArgs)
         {
-            throw new NotImplementedException();
+
         }
 
         public void Start()
@@ -111,15 +59,24 @@ namespace DirectShow.Wpf
                 return;
 
             Stop();
-            _videoCaptureDevice = new VideoCaptureDevice(DeviceName);
 
-            var resolution = _videoCaptureDevice.VideoCapabilities.First(c => GetVideoResolutionString(c) == VideoResolution);
+            var inputDevice = GetVideoInputDevice(DeviceName);
+            if (inputDevice == null)
+                throw new Exception($"Cannot find video input device '{DeviceName}'.");
+
+            _videoCaptureDevice = new VideoCaptureDevice(inputDevice.MonikerString);
+
+            var resolution = _videoCaptureDevice.VideoCapabilities.FirstOrDefault(c => GetVideoResolutionString(c) == VideoResolution);
             if (resolution != null)
                 _videoCaptureDevice.VideoResolution = resolution;
-
-            var input = _videoCaptureDevice.AvailableCrossbarVideoInputs.First(i => GetVideoInputString(i) == VideoInput);
+            else if (_videoCaptureDevice.VideoCapabilities.Length > 0)
+                _videoCaptureDevice.VideoResolution = _videoCaptureDevice.VideoCapabilities[0];
+                
+            var input = _videoCaptureDevice.AvailableCrossbarVideoInputs.FirstOrDefault(i => GetVideoInputString(i) == VideoInput);
             if (input != null)
                 _videoCaptureDevice.CrossbarVideoInput = input;
+            else if (_videoCaptureDevice.AvailableCrossbarVideoInputs.Length > 0)
+                _videoCaptureDevice.CrossbarVideoInput = _videoCaptureDevice.AvailableCrossbarVideoInputs[0];
 
             _videoCaptureDevice.NewFrame += VideoCaptureDevice_NewFrame;
             _videoCaptureDevice.NewFrameArray += VideoCaptureDevice_NewFrameArray; ;
@@ -154,95 +111,134 @@ namespace DirectShow.Wpf
             _videoCaptureDevice?.SetLinearVolume(Volume);
         }
 
+        #region Binding
+
+        private List<System.Windows.Controls.Image> _bindedImages = new List<System.Windows.Controls.Image>();
+        public void BindImageControl(System.Windows.Controls.Image image)
+        {
+            image.Source = Image;
+            _bindedImages.Add(image);
+        }
+
+        public void UnbindImageControl(System.Windows.Controls.Image image)
+        {
+            image.Source = null;
+            _bindedImages.Remove(image);
+        }
+
+        public void UnbindAll()
+        {
+            foreach (var img in _bindedImages)
+                img.Source = null;
+            _bindedImages.Clear();
+        }
+
+        public System.Windows.Controls.Image ImageControl
+        {
+            get
+            {
+                if (_bindedImages.Count > 0)
+                    return _bindedImages[0];
+                else
+                    return null;
+            }
+        }
+
+        #endregion
+
         #region Capture Display
 
-        private System.Windows.Controls.Image _image;
-        private System.Windows.Controls.Image Image
+        private ImageSource _image;
+        public ImageSource Image
         {
             get { return _image; }
             set
             {
-                Stop();
                 _image = value;
+                foreach (var img in _bindedImages)
+                    img.Source = Image;
             }
         }
 
         private void VideoCaptureDevice_NewFrameArray(object sender, NewFrameArrayEventArgs eventArgs)
         {
-            Image?.Dispatcher.Invoke(() =>
+            try
             {
-                UpdateBitmapSource(eventArgs.Pixels, eventArgs.PixelWidth, eventArgs.PixelHeight);
-            });
+                ImageControl?.Dispatcher.Invoke(() =>
+                {
+                    UpdateBitmapSource(eventArgs.Pixels, eventArgs.PixelWidth, eventArgs.PixelHeight);
+                });
+            }
+            catch { }
         }
 
         private void VideoCaptureDevice_NewFrame(object sender, NewFrameEventArgs eventArgs)
         {
-            Image?.Dispatcher.Invoke(() =>
+            try
             {
-                UpdateBitmapSource(eventArgs.Frame);
-            });
+                ImageControl?.Dispatcher.Invoke(() =>
+                {
+                    UpdateBitmapSource(eventArgs.Frame);
+                });
+            }
+            catch { }
         }
 
         private void UpdateBitmapSource(System.Drawing.Bitmap bitmap)
         {
-            if (_image == null)
-                return;
-
-            lock (_image)
+            try
             {
-                try
+                var bitmapData = bitmap.LockBits(
+                    new System.Drawing.Rectangle(0, 0, bitmap.Width, bitmap.Height),
+                    System.Drawing.Imaging.ImageLockMode.ReadOnly, bitmap.PixelFormat);
+
+                var writableBitmap = Image as WriteableBitmap;
+                if (writableBitmap == null || writableBitmap.Width != bitmapData.Width || writableBitmap.Height != bitmapData.Height)
                 {
-                    var bitmapData = bitmap.LockBits(
-                        new System.Drawing.Rectangle(0, 0, bitmap.Width, bitmap.Height),
-                        System.Drawing.Imaging.ImageLockMode.ReadOnly, bitmap.PixelFormat);
-
-                    var writableBitmap = Image.Source as WriteableBitmap;
-                    if (Image.Source == null || Image.Source.Width != bitmapData.Width || Image.Source.Height != bitmapData.Height)
-                    {
-                        writableBitmap = new WriteableBitmap(bitmapData.Width, bitmapData.Height, 96, 96, PixelFormats.Bgr24, null);
-                        Image.Source = writableBitmap;
-                    }
-
-                    writableBitmap.WritePixels(
-                        new Int32Rect(0, 0, bitmapData.Width, bitmapData.Height),
-                        bitmapData.Scan0,
-                        bitmapData.Stride * bitmapData.Height, bitmapData.Stride);
-
-                    bitmap.UnlockBits(bitmapData);
+                    writableBitmap = new WriteableBitmap(bitmapData.Width, bitmapData.Height, 96, 96, PixelFormats.Bgr24, null);
+                    Image = writableBitmap;
                 }
-                catch { }
+
+                writableBitmap.WritePixels(
+                    new Int32Rect(0, 0, bitmapData.Width, bitmapData.Height),
+                    bitmapData.Scan0,
+                    bitmapData.Stride * bitmapData.Height, bitmapData.Stride);
+
+                bitmap.UnlockBits(bitmapData);
             }
+            catch { }
         }
+
         private void UpdateBitmapSource(byte[] pixels, int width, int height)
         {
-            if (_image == null)
-                return;
-
-            lock (_image)
+            try
             {
-                try
+                var writableBitmap = Image as WriteableBitmap;
+                if (writableBitmap == null || writableBitmap.Width != width || writableBitmap.Height != height)
                 {
-                    var writableBitmap = Image.Source as WriteableBitmap;
-                    if (Image.Source == null || Image.Source.Width != width || Image.Source.Height != height)
-                    {
-                        writableBitmap = new WriteableBitmap(width, height, 96, 96, PixelFormats.Bgr24, null);
-                        Image.Source = writableBitmap;
-                    }
-
-                    writableBitmap.WritePixels(new Int32Rect(0, 0, width, height), pixels, width * (PixelFormats.Bgr24.BitsPerPixel / 8), 0);
+                    writableBitmap = new WriteableBitmap(width, height, 96, 96, PixelFormats.Bgr24, null);
+                    Image = writableBitmap;
                 }
-                catch { }
+
+                writableBitmap.WritePixels(new Int32Rect(0, 0, width, height), pixels, width * (PixelFormats.Bgr24.BitsPerPixel / 8), 0);
             }
+            catch { }
         }
 
         public void Dispose()
         {
+            UnbindAll();
             Stop();
         }
 
         #endregion
 
         #region Static
+
+        private static FilterInfo GetVideoInputDevice(string deviceName)
+        {
+            return new FilterInfoCollection(FilterCategory.VideoInputDevice).FirstOrDefault(item => item.Name == deviceName);
+        }
 
         public static List<VideoInputDevice> GetVideoInputDevices()
         {
@@ -262,7 +258,7 @@ namespace DirectShow.Wpf
                 videoInputs.Add("Not supported");
 
 
-            return new SupportedValues( resolutions, videoInputs);
+            return new SupportedValues(resolutions, videoInputs);
         }
 
         private static string GetVideoResolutionString(VideoCapabilities capability)

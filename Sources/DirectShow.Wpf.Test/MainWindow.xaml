@@ -5,15 +5,13 @@
         xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
         xmlns:local="clr-namespace:DirectShow.Wpf.Test"
         mc:Ignorable="d"
-        Title="MainWindow" Height="450" Width="800" Loaded="Window_Loaded">
+        Title="MainWindow" Height="450" Width="800" Loaded="Window_Loaded" Closed="Window_Closed">
     <Grid>
-        <Grid.RowDefinitions>
-            <RowDefinition/>
-            <RowDefinition/>
-            <RowDefinition/>
-        </Grid.RowDefinitions>
-        <ComboBox Grid.Row="0" Name="cboVideoDevices" DisplayMemberPath="Name" SelectionChanged="cboVideoDevices_SelectionChanged"/>
-        <ComboBox Grid.Row="1" Name="cboVideoResolutions"/>
-        <ComboBox Grid.Row="2" Name="cboVideoInputs"/>
+        <Grid.ColumnDefinitions>
+            <ColumnDefinition/>
+            <ColumnDefinition/>
+        </Grid.ColumnDefinitions>
+        <Image Name="imgTvTuner"/>
+        <Image Grid.Column="1" Name="imgTvTuner2"/>
     </Grid>
 </Window>

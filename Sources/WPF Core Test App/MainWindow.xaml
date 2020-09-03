@@ -12,7 +12,7 @@
             <RowDefinition Height="Auto"/>
             <RowDefinition Height="Auto"/>
         </Grid.RowDefinitions>
-        <Image Name="image" Stretch="Fill"/>
+        <Image Name="image" Stretch="None"/>
         <Slider Name="slider" Minimum="0" Maximum="100" Grid.Row="1" Margin="5" ValueChanged="slider_ValueChanged" LargeChange="10"/>
         <Button Name="button" Content="Play / Stop" Padding="5" Grid.Row="2" Click="button_Click"/>
     </Grid>

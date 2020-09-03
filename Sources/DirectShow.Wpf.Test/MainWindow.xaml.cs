@@ -25,17 +25,64 @@ namespace DirectShow.Wpf.Test
             InitializeComponent();
         }
 
+
+        TvTunerSettings _tvTunerSettings;
+        VideoCaptureWpf _videoCaptureWpf;
+
         private void Window_Loaded(object sender, RoutedEventArgs e)
         {
-            cboVideoDevices.ItemsSource = VideoCaptureWpf.GetVideoInputDevices();
+            _tvTunerSettings = new TvTunerSettings();
+            _tvTunerSettings.Channel = 2;
+            _tvTunerSettings.ChannelList.Add(2);
+            _tvTunerSettings.ChannelList.Add(7);
+            _tvTunerSettings.ChannelList.Add(9);
+            _tvTunerSettings.ChannelList.Add(17);
+            _tvTunerSettings.ChannelList.Add(19);
+            _tvTunerSettings.ChannelList.Add(27);
+            _tvTunerSettings.ChannelList.Add(29);
+            _tvTunerSettings.Volume = 50;
+            _tvTunerSettings.VideoDeviceName = "USB TV Device";
+            _tvTunerSettings.VideoResolution = "720 x 480a";
+            _tvTunerSettings.VideoInput = "0: VideoTunera";
+
+            _videoCaptureWpf = new VideoCaptureWpf();
+            _videoCaptureWpf.DeviceName = _tvTunerSettings.VideoDeviceName;
+            _videoCaptureWpf.VideoResolution = _tvTunerSettings.VideoResolution;
+            _videoCaptureWpf.VideoInput = _tvTunerSettings.VideoInput;
+            _videoCaptureWpf.Volume = _tvTunerSettings.Volume;
+            _videoCaptureWpf.BindImageControl(imgTvTuner);
+            _videoCaptureWpf.BindImageControl(imgTvTuner2);
+            _videoCaptureWpf.Start();
+
+            var wTvTunerController = new wTvTunerController(_tvTunerSettings);
+            wTvTunerController.ChannelChanged += WTvTunerController_ChannelChanged;
+            wTvTunerController.VolumeChanged += WTvTunerController_VolumeChanged;
+            wTvTunerController.VideoInputChanged += WTvTunerController_VideoInputChanged;
+            wTvTunerController.Show();
         }
 
-        private void cboVideoDevices_SelectionChanged(object sender, SelectionChangedEventArgs e)
+        private void WTvTunerController_VideoInputChanged(object sender, wTvTunerController.VideoInputChangedEventArgs e)
         {
-            var selected = cboVideoDevices.SelectedItem as VideoCaptureWpf.VideoInputDevice;
-            var supported = VideoCaptureWpf.GetSupportedValues(selected.DeviceMoniker);
-            cboVideoResolutions.ItemsSource = supported.VideoResolutions;
-            cboVideoInputs.ItemsSource = supported.VideoInputs;
+            _videoCaptureWpf.Stop();
+            _videoCaptureWpf.DeviceName = e.VideoDevice;
+            _videoCaptureWpf.VideoResolution = e.VideoResolution;
+            _videoCaptureWpf.VideoInput = e.VideoInput;
+            _videoCaptureWpf.Start();
+        }
+
+        private void WTvTunerController_VolumeChanged(object sender, wTvTunerController.VolumeChangedEventArgs e)
+        {
+            _videoCaptureWpf.Volume = e.Volume;
+        }
+
+        private void WTvTunerController_ChannelChanged(object sender, wTvTunerController.ChannelChangedEventArgs e)
+        {
+            
+        }
+
+        private void Window_Closed(object sender, EventArgs e)
+        {
+            _videoCaptureWpf.Dispose();
         }
     }
 }
