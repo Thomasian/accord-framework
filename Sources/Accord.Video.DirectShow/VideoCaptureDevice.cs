@@ -195,6 +195,43 @@ namespace Accord.Video.DirectShow
 
         #endregion
 
+        #region TV Tuner Channel
+
+        private IAMTVTuner _tvTuner;
+
+        private bool hasNewChannel = false;
+
+        private int _channel = 1;
+        /// <summary>
+        /// Sets or gets the current channel
+        /// </summary>
+        public int Channel
+        {
+            get { return _channel; }
+            set
+            {
+                if (value < 1)
+                    value = 1;
+                else if (value > 200)
+                    value = 200;
+
+                if (_channel == value)
+                    return;
+
+                _channel = value;
+                hasNewChannel = true;
+            }
+        }
+
+        //This must be called on the WorkerThread otherwise exception is thrown
+        private void SetChannel()
+        {
+            hasNewChannel = false;
+            _tvTuner?.put_Channel(Channel, AMTunerSubChannel.Default, AMTunerSubChannel.Default);
+        }
+
+        #endregion
+
         // video capture source object
         private object sourceObject = null;
 
@@ -1175,6 +1212,7 @@ namespace Accord.Video.DirectShow
             object graphObject = null;
             object videoGrabberObject = null;
             object snapshotGrabberObject = null;
+            object tunerObject = null;
             object crossbarObject = null;
 
             // interfaces
@@ -1258,6 +1296,11 @@ namespace Accord.Video.DirectShow
 
                 videoSampleGrabber.SetMediaType(mediaType);
                 snapshotSampleGrabber.SetMediaType(mediaType);
+
+                // Get TV tuner control
+                captureGraph.FindInterface(FindDirection.UpstreamOnly, Guid.Empty, sourceBase, typeof(IAMTVTuner).GUID, out tunerObject);
+                _tvTuner = tunerObject as IAMTVTuner;
+                SetChannel();
 
                 // get crossbar object to to allows configuring pins of capture card
                 captureGraph.FindInterface(FindDirection.UpstreamOnly, Guid.Empty, sourceBase, typeof(IAMCrossbar).GUID, out crossbarObject);
@@ -1434,6 +1477,11 @@ namespace Accord.Video.DirectShow
                                 crossbarVideoInput = GetCurrentCrossbarInput(crossbar);
                             }
                         }
+
+                        if (hasNewChannel)
+                        {
+                            SetChannel();
+                        }
                     }
                     while (!stopEvent.WaitOne(100, false));
 
@@ -1470,6 +1518,11 @@ namespace Accord.Video.DirectShow
                     Marshal.ReleaseComObject(_basicAudio);
                     _basicAudio = null;
                 }
+                if (_tvTuner != null)
+                {
+                    Marshal.ReleaseComObject(_tvTuner);
+                    _tvTuner = null;
+                }
                 if (graphObject != null)
                 {
                     Marshal.ReleaseComObject(graphObject);
@@ -1494,6 +1547,11 @@ namespace Accord.Video.DirectShow
                 {
                     Marshal.ReleaseComObject(captureGraphObject);
                     captureGraphObject = null;
+                }
+                if (tunerObject != null)
+                {
+                    Marshal.ReleaseComObject(tunerObject);
+                    tunerObject = null;
                 }
                 if (crossbarObject != null)
                 {

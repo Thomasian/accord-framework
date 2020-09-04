@@ -41,9 +41,10 @@ namespace DirectShow.Wpf.Test
             _tvTunerSettings.ChannelList.Add(27);
             _tvTunerSettings.ChannelList.Add(29);
             _tvTunerSettings.Volume = 50;
+            _tvTunerSettings.Channel = 7;
             _tvTunerSettings.VideoDeviceName = "USB TV Device";
-            _tvTunerSettings.VideoResolution = "720 x 480a";
-            _tvTunerSettings.VideoInput = "0: VideoTunera";
+            _tvTunerSettings.VideoResolution = "720 x 480";
+            _tvTunerSettings.VideoInput = "0: VideoTuner";
 
             _videoCaptureWpf = new VideoCaptureWpf();
             _videoCaptureWpf.DeviceName = _tvTunerSettings.VideoDeviceName;
@@ -77,7 +78,7 @@ namespace DirectShow.Wpf.Test
 
         private void WTvTunerController_ChannelChanged(object sender, wTvTunerController.ChannelChangedEventArgs e)
         {
-            
+            _videoCaptureWpf.Channel = e.Channel;
         }
 
         private void Window_Closed(object sender, EventArgs e)

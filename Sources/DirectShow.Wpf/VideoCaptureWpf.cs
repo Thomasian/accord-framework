@@ -31,6 +31,17 @@ namespace DirectShow.Wpf
             }
         }
 
+        private int _channel = 1;
+        public int Channel
+        {
+            get { return _channel; }
+            set
+            {
+                _channel = value;
+                SetChannel();
+            }
+        }
+
         private bool _isStarted;
         public bool IsStarted
         {
@@ -71,7 +82,7 @@ namespace DirectShow.Wpf
                 _videoCaptureDevice.VideoResolution = resolution;
             else if (_videoCaptureDevice.VideoCapabilities.Length > 0)
                 _videoCaptureDevice.VideoResolution = _videoCaptureDevice.VideoCapabilities[0];
-                
+
             var input = _videoCaptureDevice.AvailableCrossbarVideoInputs.FirstOrDefault(i => GetVideoInputString(i) == VideoInput);
             if (input != null)
                 _videoCaptureDevice.CrossbarVideoInput = input;
@@ -83,6 +94,7 @@ namespace DirectShow.Wpf
             _videoCaptureDevice.VideoSourceError += VideoCaptureDevice_VideoSourceError;
 
             SetVolume();
+            SetChannel();
             _videoCaptureDevice.Start();
 
             _isStarted = true;
@@ -109,6 +121,12 @@ namespace DirectShow.Wpf
         private void SetVolume()
         {
             _videoCaptureDevice?.SetLinearVolume(Volume);
+        }
+
+        private void SetChannel()
+        {
+            if (_videoCaptureDevice != null)
+                _videoCaptureDevice.Channel = _channel;
         }
 
         #region Binding
