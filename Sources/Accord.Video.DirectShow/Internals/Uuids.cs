@@ -301,6 +301,11 @@ namespace Accord.Video.DirectShow.Internals
         /// 
         public static readonly Guid StillImage =
             new Guid( 0xFB6C428A, 0x0353, 0x11D1, 0x90, 0x5F, 0x00, 0x00, 0xC0, 0xCC, 0x16, 0xBA );
+
+
+        public static readonly Guid Preview =
+            new Guid(0xfb6c4282, 0x0353, 0x11d1, 0x90, 0x5f, 0x00, 0x00, 0xc0, 0xcc, 0x16, 0xba);
+
     }
 
     // Below GUIDs are used by ICaptureGraphBuilder::FindInterface().

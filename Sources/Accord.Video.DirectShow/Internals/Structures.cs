@@ -439,7 +439,7 @@ namespace Accord.Video.DirectShow.Internals
     }
 
     [Flags, ComVisible( false )]
-    internal enum AnalogVideoStandard
+    public enum AnalogVideoStandard
     {
         None        = 0x00000000,   // This is a digital sensor
         NTSC_M      = 0x00000001,   //        75 IRE Setup
