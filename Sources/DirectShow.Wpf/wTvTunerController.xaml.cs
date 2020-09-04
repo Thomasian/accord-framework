@@ -83,6 +83,15 @@ namespace DirectShow.Wpf
             CheckAllowAddChannel();
         }
 
+        private void GoToChannel_Click(object sender, RoutedEventArgs e)
+        {
+            var button = sender as Button;
+            if (button?.DataContext.GetType() == typeof(Int32))
+            {
+                udChannel.Value = (Int32)button.DataContext;
+            }
+        }
+
         private void DeleteChannel_Click(object sender, RoutedEventArgs e)
         {
             var button = sender as Button;
@@ -260,6 +269,5 @@ namespace DirectShow.Wpf
         #endregion
 
         #endregion
-
     }
 }

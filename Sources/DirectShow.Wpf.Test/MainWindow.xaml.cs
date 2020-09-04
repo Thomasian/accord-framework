@@ -51,6 +51,7 @@ namespace DirectShow.Wpf.Test
             _videoCaptureWpf.VideoResolution = _tvTunerSettings.VideoResolution;
             _videoCaptureWpf.VideoInput = _tvTunerSettings.VideoInput;
             _videoCaptureWpf.Volume = _tvTunerSettings.Volume;
+            _videoCaptureWpf.Channel = _tvTunerSettings.Channel;
             _videoCaptureWpf.BindImageControl(imgTvTuner);
             _videoCaptureWpf.BindImageControl(imgTvTuner2);
             _videoCaptureWpf.Start();

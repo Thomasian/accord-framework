@@ -41,7 +41,7 @@
                 <ListBox.ItemTemplate>
                     <DataTemplate>
                         <StackPanel Orientation="Horizontal">
-                            <Button Content="{Binding}" Width="30"/>
+                            <Button Content="{Binding}" Width="30" Click="GoToChannel_Click"/>
                             <Button ToolTip="Delete Channel" BorderBrush="Transparent" Background="Transparent" Focusable="False" BorderThickness="0" 
                                     Click="DeleteChannel_Click">
                                 <fa:ImageAwesome Icon="Solid_Times" Foreground="Red" Width="10" Margin="5,0,0,0"/>

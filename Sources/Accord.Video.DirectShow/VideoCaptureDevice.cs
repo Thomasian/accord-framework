@@ -1297,11 +1297,6 @@ namespace Accord.Video.DirectShow
                 videoSampleGrabber.SetMediaType(mediaType);
                 snapshotSampleGrabber.SetMediaType(mediaType);
 
-                // Get TV tuner control
-                captureGraph.FindInterface(FindDirection.UpstreamOnly, Guid.Empty, sourceBase, typeof(IAMTVTuner).GUID, out tunerObject);
-                _tvTuner = tunerObject as IAMTVTuner;
-                SetChannel();
-
                 // get crossbar object to to allows configuring pins of capture card
                 captureGraph.FindInterface(FindDirection.UpstreamOnly, Guid.Empty, sourceBase, typeof(IAMCrossbar).GUID, out crossbarObject);
                 if (crossbarObject != null)
@@ -1396,6 +1391,11 @@ namespace Accord.Video.DirectShow
                             mediaType.Dispose();
                         }
                     }
+
+                    // Get TV tuner control
+                    captureGraph.FindInterface(FindDirection.UpstreamOnly, Guid.Empty, sourceBase, typeof(IAMTVTuner).GUID, out tunerObject);
+                    _tvTuner = tunerObject as IAMTVTuner;
+                    SetChannel();
 
                     // get audio control
                     _basicAudio = graphObject as IBasicAudio;
