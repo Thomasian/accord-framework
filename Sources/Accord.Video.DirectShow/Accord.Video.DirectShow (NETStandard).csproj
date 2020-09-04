@@ -6,6 +6,11 @@
     <TargetFrameworks>netstandard2.0<!--;net462;net46;net45;net40;net35--></TargetFrameworks>
   </PropertyGroup>
 
+  <PropertyGroup Condition="'$(Configuration)|$(TargetFramework)|$(Platform)'=='Release|netstandard2.0|AnyCPU'">
+    <DocumentationFile></DocumentationFile>
+    <NoWarn>1701;1702;1591</NoWarn>
+  </PropertyGroup>
+
   <Import Project="$(SolutionDir)Accord.NET (NETStandard).targets" />
 
   <Choose>

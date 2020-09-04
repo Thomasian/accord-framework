@@ -403,7 +403,7 @@ namespace Accord.Video.DirectShow
         /// <remarks><para>Notifies clients about new available snapshot frame - the one which comes when
         /// camera's snapshot/shutter button is pressed.</para>
         /// 
-        /// <para>See documentation to <see cref="ProvideSnapshotsArray"/> for additional information.</para>
+        /// <para>See documentation to <see cref="ProvideSnapshots"/> for additional information.</para>
         /// 
         /// <para><note>Since video source may have multiple clients, each client is responsible for
         /// making a copy (cloning) of the passed snapshot frame, because the video source disposes its
@@ -1883,9 +1883,6 @@ namespace Accord.Video.DirectShow
         /// <summary>
         /// Notifies clients about new snapshot frame.
         /// </summary>
-        /// 
-        /// <param name="image">New snapshot's image.</param>
-        /// 
         private void OnSnapshotFrameArray(int width, int height, byte[] pixels)
         {
             TimeSpan timeSinceStarted = DateTime.Now - startTime;
