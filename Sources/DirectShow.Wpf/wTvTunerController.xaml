@@ -26,7 +26,7 @@
                 <RowDefinition Height="Auto"/>
             </Grid.RowDefinitions>
             <TextBlock Text="Channel: " VerticalAlignment="Center"/>
-            <ext:IntegerUpDown Grid.Column="1" Name="udChannel" Width="50" ValueChanged="udChannel_ValueChanged"/>
+            <ext:IntegerUpDown Grid.Column="1" Name="udChannel" Width="45" ValueChanged="udChannel_ValueChanged"/>
             <Button Grid.Column="2" Name="bttnAddChannel" Margin="0,0" Padding="5,0" HorizontalAlignment="Left" 
                     Background="Transparent" BorderBrush="Transparent" Click="bttnAddChannel_Click">
                 <fa:ImageAwesome Name="faAddChannel"  Icon="Solid_Plus" Height="15"/>
@@ -50,11 +50,13 @@
                     </DataTemplate>
                 </ListBox.ItemTemplate>
             </ListBox>
-            <TextBlock Grid.Row="2" Text="Volume:" Margin="0,5,0,0"/>
+            <TextBlock Grid.Row="2" Text="Volume:" VerticalAlignment="Center" Margin="5,10,0,0"/>
+            <ext:IntegerUpDown Grid.Row="2" Grid.Column="1" Name="udVolume" Width="45" ValueChanged="udVolume_ValueChanged"  Margin="5,10,0,0"/>
+
             <Slider Grid.Row="3" Grid.ColumnSpan="3"  Margin="5,5,5,0" Name="sldVolume" LargeChange="5" SmallChange="1"
                     ValueChanged="sldVolume_ValueChanged"/>
         </Grid>
-        <Expander Grid.Row="1" Header="Advanced Settings" Margin="5,0,15,10">
+        <Expander Grid.Row="1" Header="Advanced Settings" Margin="5,0,5,10">
             <Border BorderBrush="Black" CornerRadius="5" BorderThickness="1">
                 <Grid Margin="10,5,10,5">
                     <Grid.RowDefinitions>

@@ -9,9 +9,12 @@
     <Grid>
         <Grid.ColumnDefinitions>
             <ColumnDefinition/>
-            <ColumnDefinition/>
         </Grid.ColumnDefinitions>
+        <Grid.RowDefinitions>
+            <RowDefinition/>
+            <RowDefinition Height="Auto"/>
+        </Grid.RowDefinitions>
         <Image Name="imgTvTuner"/>
-        <Image Grid.Column="1" Name="imgTvTuner2"/>
+        <Button Grid.Row="1" Click="Button_Click" Content="Play / Stop"/>
     </Grid>
 </Window>

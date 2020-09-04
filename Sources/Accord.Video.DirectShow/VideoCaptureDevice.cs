@@ -199,6 +199,9 @@ namespace Accord.Video.DirectShow
 
         private IAMTVTuner _tvTuner;
 
+        
+        // Channel can only be set on the WorkerThread. Set hasNewChannel to true when 
+        // Channel value has change to notify Worker thread to update the player
         private bool hasNewChannel = false;
 
         private int _channel = 1;
@@ -1005,7 +1008,6 @@ namespace Accord.Video.DirectShow
                 return (!isCrossbarAvailable.HasValue) ? false : isCrossbarAvailable.Value;
             }
         }
-
 
         /// <summary>
         /// Simulates an external trigger.

@@ -1,7 +1,9 @@
 ﻿using Accord.Video.DirectShow;
 using System;
+using System.Collections.Generic;
 using System.Linq;
 using System.Security.Policy;
+using System.Threading.Tasks;
 using System.Windows;
 using System.Windows.Controls;
 using System.Windows.Media;
@@ -22,6 +24,8 @@ namespace DirectShow.Wpf
         {
             InitializeComponent();
 
+            udVolume.Minimum = TvTunerSettings.MinVolume;
+            udVolume.Maximum = TvTunerSettings.MaxVolume;
             sldVolume.Minimum = TvTunerSettings.MinVolume;
             sldVolume.Maximum = TvTunerSettings.MaxVolume;
             udChannel.Minimum = TvTunerSettings.MinChannel;
@@ -31,9 +35,10 @@ namespace DirectShow.Wpf
 
             udChannel.Value = TvTunerSettings.Channel;
             lstChannels.ItemsSource = TvTunerSettings.ChannelList;
+            udVolume.Value = TvTunerSettings.Volume;
             sldVolume.Value = TvTunerSettings.Volume;
-            RefreshVideoDevices();
 
+            RefreshVideoDevicesAsync();
             IsModified = false;
         }
 
@@ -107,12 +112,25 @@ namespace DirectShow.Wpf
 
         #region Volume
 
+        private void udVolume_ValueChanged(object sender, RoutedPropertyChangedEventArgs<object> e)
+        {
+            if (udVolume.Value.HasValue && udVolume.Value != TvTunerSettings.Volume)
+            {
+                TvTunerSettings.Volume = udVolume.Value.Value;
+                IsModified = true;
+                sldVolume.Value = TvTunerSettings.Volume;
+                OnVolumeChanged();
+            }
+            CheckAllowAddChannel();
+        }
+
         private void sldVolume_ValueChanged(object sender, RoutedPropertyChangedEventArgs<double> e)
         {
             if (sldVolume.Value != TvTunerSettings.Volume)
             {
                 TvTunerSettings.Volume = Convert.ToInt32(sldVolume.Value);
                 IsModified = true;
+                udVolume.Value = TvTunerSettings.Volume;
                 OnVolumeChanged();
             }
         }
@@ -123,14 +141,17 @@ namespace DirectShow.Wpf
 
         private void bttnRefreshDevices_Click(object sender, RoutedEventArgs e)
         {
-            RefreshVideoDevices();
+            RefreshVideoDevicesAsync();
         }
 
-        internal void RefreshVideoDevices()
+        private async void RefreshVideoDevicesAsync()
         {
-            var devices = VideoCaptureWpf.GetVideoInputDevices();
-            cboVideoDevice.ItemsSource = devices;
-            cboVideoDevice.SelectedItem = devices.FirstOrDefault(d => d.Name == TvTunerSettings.VideoDeviceName);
+            var devices = await Task<List<VideoCaptureWpf.VideoInputDevice>>.Factory.StartNew(() => VideoCaptureWpf.GetVideoInputDevices());
+            if (devices != null)
+            {
+                cboVideoDevice.ItemsSource = devices;
+                cboVideoDevice.SelectedItem = devices.FirstOrDefault(d => d.Name == TvTunerSettings.VideoDeviceName);
+            }
         }
 
         private void cboVideoDevice_SelectionChanged(object sender, SelectionChangedEventArgs e)

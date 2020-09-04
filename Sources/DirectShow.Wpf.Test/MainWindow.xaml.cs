@@ -52,15 +52,19 @@ namespace DirectShow.Wpf.Test
             _videoCaptureWpf.VideoInput = _tvTunerSettings.VideoInput;
             _videoCaptureWpf.Volume = _tvTunerSettings.Volume;
             _videoCaptureWpf.Channel = _tvTunerSettings.Channel;
+            _videoCaptureWpf.VideoSourceError += _videoCaptureWpf_VideoSourceError;
             _videoCaptureWpf.BindImageControl(imgTvTuner);
-            _videoCaptureWpf.BindImageControl(imgTvTuner2);
-            _videoCaptureWpf.Start();
 
             var wTvTunerController = new wTvTunerController(_tvTunerSettings);
             wTvTunerController.ChannelChanged += WTvTunerController_ChannelChanged;
             wTvTunerController.VolumeChanged += WTvTunerController_VolumeChanged;
             wTvTunerController.VideoInputChanged += WTvTunerController_VideoInputChanged;
             wTvTunerController.Show();
+        }
+
+        private void _videoCaptureWpf_VideoSourceError(object sender, Accord.Video.VideoSourceErrorEventArgs eventArgs)
+        {
+            MessageBox.Show(eventArgs.Description);
         }
 
         private void WTvTunerController_VideoInputChanged(object sender, wTvTunerController.VideoInputChangedEventArgs e)
@@ -85,6 +89,15 @@ namespace DirectShow.Wpf.Test
         private void Window_Closed(object sender, EventArgs e)
         {
             _videoCaptureWpf.Dispose();
+        }
+
+        private void Button_Click(object sender, RoutedEventArgs e)
+        {
+            if (_videoCaptureWpf.IsStarted)
+                _videoCaptureWpf.Stop();
+            else
+                _videoCaptureWpf.Start();
+
         }
     }
 }

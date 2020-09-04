@@ -48,6 +48,24 @@ namespace DirectShow.Wpf
             get { return _isStarted; }
         }
 
+        /// <summary>
+        /// Video source error event.
+        /// </summary>
+        /// 
+        /// <remarks>This event is used to notify clients about any type of errors occurred in
+        /// video source object, for example internal exceptions.</remarks>
+        /// 
+        public event VideoSourceErrorEventHandler VideoSourceError;
+
+        /// <summary>
+        /// Video playing finished event.
+        /// </summary>
+        /// 
+        /// <remarks><para>This event is used to notify clients that the video playing has finished.</para>
+        /// </remarks>
+        /// 
+        public event PlayingFinishedEventHandler PlayingFinished;
+
         #endregion
 
         public VideoCaptureWpf()
@@ -57,11 +75,6 @@ namespace DirectShow.Wpf
             //videoCaptureDevice.VideoResolution = caps;
             //videoCaptureDevice.CrossbarVideoInput = availableVideoInputs[1];
             //var captureSize = caps.FrameSize;
-        }
-
-        private void VideoCaptureDevice_VideoSourceError(object sender, VideoSourceErrorEventArgs eventArgs)
-        {
-
         }
 
         public void Start()
@@ -92,6 +105,7 @@ namespace DirectShow.Wpf
             _videoCaptureDevice.NewFrame += VideoCaptureDevice_NewFrame;
             _videoCaptureDevice.NewFrameArray += VideoCaptureDevice_NewFrameArray; ;
             _videoCaptureDevice.VideoSourceError += VideoCaptureDevice_VideoSourceError;
+            _videoCaptureDevice.PlayingFinished += VideoCaptureDevice_PlayingFinished;
 
             SetVolume();
             SetChannel();
@@ -109,7 +123,8 @@ namespace DirectShow.Wpf
                 _videoCaptureDevice.VideoSourceError -= VideoCaptureDevice_VideoSourceError;
                 try
                 {
-                    _videoCaptureDevice.SignalToStop();
+                    if (_isStarted)
+                        _videoCaptureDevice.SignalToStop();
                 }
                 catch { }
                 _videoCaptureDevice = null;
@@ -247,6 +262,24 @@ namespace DirectShow.Wpf
         {
             UnbindAll();
             Stop();
+        }
+
+        #endregion
+
+        #region Events
+
+        private void VideoCaptureDevice_VideoSourceError(object sender, VideoSourceErrorEventArgs eventArgs)
+        {
+            if (object.ReferenceEquals(_videoCaptureDevice, sender))
+                Stop();
+            VideoSourceError?.Invoke(this, eventArgs);
+        }
+
+        private void VideoCaptureDevice_PlayingFinished(object sender, ReasonToFinishPlaying reason)
+        {
+            if (object.ReferenceEquals(_videoCaptureDevice, sender))
+                Stop();
+            PlayingFinished?.Invoke(this, reason);
         }
 
         #endregion
