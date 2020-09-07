@@ -42,11 +42,9 @@ namespace DirectShow.Wpf
             }
         }
 
-        private bool _isStarted;
-        public bool IsStarted
-        {
-            get { return _isStarted; }
-        }
+        public bool IsStarted { get; private set; }
+
+        public bool IsPaused { get { return _videoCaptureDevice?.IsPaused ?? false; } }
 
         /// <summary>
         /// Video source error event.
@@ -79,7 +77,7 @@ namespace DirectShow.Wpf
 
         public void Start()
         {
-            if (_isStarted)
+            if (IsStarted)
                 return;
 
             Stop();
@@ -111,7 +109,7 @@ namespace DirectShow.Wpf
             SetChannel();
             _videoCaptureDevice.Start();
 
-            _isStarted = true;
+            IsStarted = true;
         }
 
         public void Stop()
@@ -123,14 +121,24 @@ namespace DirectShow.Wpf
                 _videoCaptureDevice.VideoSourceError -= VideoCaptureDevice_VideoSourceError;
                 try
                 {
-                    if (_isStarted)
+                    if (IsStarted)
                         _videoCaptureDevice.SignalToStop();
                 }
                 catch { }
                 _videoCaptureDevice = null;
             }
 
-            _isStarted = false;
+            IsStarted = false;
+        }
+
+        public void Pause()
+        {
+            _videoCaptureDevice?.Pause();
+        }
+
+        public void Resume()
+        {
+            _videoCaptureDevice?.Resume();
         }
 
         private void SetVolume()

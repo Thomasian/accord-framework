@@ -93,11 +93,12 @@ namespace DirectShow.Wpf.Test
 
         private void Button_Click(object sender, RoutedEventArgs e)
         {
-            if (_videoCaptureWpf.IsStarted)
-                _videoCaptureWpf.Stop();
-            else
+            if (!_videoCaptureWpf.IsStarted)
                 _videoCaptureWpf.Start();
-
+            else if (_videoCaptureWpf.IsPaused)
+                _videoCaptureWpf.Resume();
+            else
+                _videoCaptureWpf.Pause();
         }
     }
 }

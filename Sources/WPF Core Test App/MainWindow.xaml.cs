@@ -39,7 +39,14 @@ namespace WPFCoreTestApp
         {
             if (videoSource != null)
             {
-                CloseCurrentVideoSource();
+                //CloseCurrentVideoSource();
+
+                var captureDevice = videoSource as VideoCaptureDevice;
+                if (captureDevice.IsPaused)
+                    captureDevice.Resume();
+                else
+                    captureDevice.Pause();
+
                 return;
             }
 
@@ -51,7 +58,7 @@ namespace WPFCoreTestApp
             RefreshSupportedFrameSizes(videoCaptureDevice);
             VideoCapabilities caps = videoCapabilitiesDictionary[videoResolutions.Last()];
             videoCaptureDevice.VideoResolution = caps;
-            videoCaptureDevice.CrossbarVideoInput = availableVideoInputs[1];
+            videoCaptureDevice.CrossbarVideoInput = availableVideoInputs[0];
             var captureSize = caps.FrameSize;
             videoCaptureDevice.NewFrameArray += video_NewFrameArray;
             videoCaptureDevice.NewFrameAsByteArray = true;

@@ -41,6 +41,7 @@ namespace Accord.Video.DirectShow
     using System.Security;
     using System.ComponentModel.DataAnnotations;
     using System.ComponentModel;
+    using System.Data.Common;
 
     /// <summary>
     /// Video source for local video capture device (for example USB webcam).
@@ -199,7 +200,7 @@ namespace Accord.Video.DirectShow
 
         private IAMTVTuner _tvTuner;
 
-        
+
         // Channel can only be set on the WorkerThread. Set hasNewChannel to true when 
         // Channel value has change to notify Worker thread to update the player
         private bool hasNewChannel = false;
@@ -491,6 +492,20 @@ namespace Accord.Video.DirectShow
                 bytesReceived = 0;
                 return bytes;
             }
+        }
+
+        private bool _resumePlayer = false;
+        private bool _pausePlayer = false;
+        /// <summary>
+        /// Returns whether player is paused
+        /// </summary>
+        public bool IsPaused { get; private set; } = false;
+
+        private void ClearPauseResume()
+        {
+            _pausePlayer = false;
+            _resumePlayer = false;
+            IsPaused = false;
         }
 
         /// <summary>
@@ -851,11 +866,31 @@ namespace Accord.Video.DirectShow
         /// 
         public void Stop()
         {
+            ClearPauseResume();
+
             if (this.IsRunning)
             {
                 thread.Abort();
                 WaitForStop();
             }
+        }
+
+        /// <summary>
+        /// Resumes video capture when paused
+        /// </summary>
+        public void Resume()
+        {
+            if (IsRunning && IsPaused)
+                _resumePlayer = true;
+        }
+        
+        /// <summary>
+        /// Pauses video capture when running
+        /// </summary>
+        public void Pause()
+        {
+            if (IsRunning)
+                _pausePlayer = true;
         }
 
         /// <summary>
@@ -1412,6 +1447,8 @@ namespace Accord.Video.DirectShow
                     IntPtr p1, p2;
                     DsEvCode code;
 
+                    ClearPauseResume();
+
                     // run
                     mediaControl.Run();
 
@@ -1484,6 +1521,20 @@ namespace Accord.Video.DirectShow
                         {
                             SetChannel();
                         }
+
+                        if (_pausePlayer)
+                        {
+                            _pausePlayer = false;
+                            mediaControl.Pause();
+                            IsPaused = true;
+                        }
+
+                        if (_resumePlayer)
+                        {
+                            _resumePlayer = false;
+                            mediaControl.Run();
+                            IsPaused = false;
+                        }
                     }
                     while (!stopEvent.WaitOne(100, false));
 
@@ -1500,6 +1551,8 @@ namespace Accord.Video.DirectShow
             }
             finally
             {
+                ClearPauseResume();
+
                 // release all objects
                 captureGraph = null;
                 graph = null;
